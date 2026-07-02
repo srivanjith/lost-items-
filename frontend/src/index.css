@@ -1,23 +1,23 @@
 @import "tailwindcss";
 
 @theme {
-  --color-slate-950: #e8ecf5; /* Neomorphic canvas background */
-  --color-slate-900: rgba(255, 255, 255, 0.45); /* Liquid glass card backgrounds */
-  --color-slate-850: rgba(255, 255, 255, 0.25); /* Ultra glossy overlays */
-  --color-slate-800: rgba(255, 255, 255, 0.35); /* Glass card highlights */
-  --color-slate-700: rgba(70, 71, 174, 0.08); /* Indigo tinted dividers */
-  --color-slate-600: #64748b; /* Slate secondary text */
-  --color-slate-500: #475569; /* Slate secondary headers */
-  --color-slate-450: #334155; /* Dark slate body text */
-  --color-slate-400: #1e293b; /* Dark slate headings */
+  --color-slate-950: #f4f6f9; /* Fluent light gray canvas */
+  --color-slate-900: rgba(255, 255, 255, 0.45); /* Microsoft Fluent Acrylic surface */
+  --color-slate-850: rgba(255, 255, 255, 0.7); /* Clean reflective gloss overlay */
+  --color-slate-800: rgba(255, 255, 255, 0.55); /* Lighter border highlight */
+  --color-slate-700: #e2e8f0; /* Soft border dividers */
+  --color-slate-600: #64748b; /* Secondary body gray */
+  --color-slate-500: #475569; /* Slate headers */
+  --color-slate-450: #334155; /* Main slate text */
+  --color-slate-400: #1e293b; /* Dark slate headers */
   --color-slate-350: #0f172a; /* Deep titles */
-  --color-slate-300: #020617; /* Slate black accents */
+  --color-slate-300: #020617; /* High contrast headers */
   --color-slate-200: #000000;
   --color-slate-100: #000000;
 
-  --color-amber-500: #4647ae; /* Royal blue highlight */
-  --color-amber-400: #5c5ed8; /* Lighter royal blue */
-  --color-amber-600: #373895; /* Darker royal blue */
+  --color-amber-500: #4647ae; /* Royal indigo primary */
+  --color-amber-400: #5c5ed8; /* Light indigo */
+  --color-amber-600: #373895; /* Dark indigo */
   --color-amber-550: #4647ae;
   --color-amber-405: #4647ae;
   --color-amber-455: #4647ae;
@@ -46,30 +46,28 @@
     animation: charge 1.2s cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
   }
   
+  /* Microsoft Fluent Acrylic Material */
   .glass-card {
-    background: rgba(255, 255, 255, 0.35);
-    backdrop-filter: blur(28px);
-    -webkit-backdrop-filter: blur(28px);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    border-right-color: rgba(255, 255, 255, 0.2);
-    border-bottom-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(24px) saturate(160%);
+    -webkit-backdrop-filter: blur(24px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.55);
     box-shadow: 
-      12px 12px 24px rgba(166, 171, 189, 0.25), 
-      -12px -12px 24px rgba(255, 255, 255, 0.85),
-      inset 4px 4px 8px rgba(255, 255, 255, 0.3);
+      0 8px 32px 0 rgba(70, 71, 174, 0.05), 
+      inset 0 1px 1px 0 rgba(255, 255, 255, 0.3);
   }
   
+  /* Clean Glassmorphic hover interactions */
   .glass-card-hover {
-    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .glass-card-hover:hover {
-    background: rgba(255, 255, 255, 0.45);
-    border-color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.55);
+    border-color: rgba(255, 255, 255, 0.7);
     box-shadow: 
-      18px 18px 36px rgba(166, 171, 189, 0.35), 
-      -18px -18px 36px rgba(255, 255, 255, 0.95),
-      inset 8px 8px 16px rgba(255, 255, 255, 0.4);
-    transform: translateY(-6px) scale(1.005);
+      0 16px 48px 0 rgba(70, 71, 174, 0.12), 
+      inset 0 1px 1px 0 rgba(255, 255, 255, 0.5);
+    transform: translateY(-4px);
   }
   
   .shimmer-text {
@@ -86,7 +84,7 @@
   }
 
   .interactive-glow-bg {
-    background: radial-gradient(circle 800px at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(70, 71, 174, 0.015), transparent 40%);
+    background: radial-gradient(circle 800px at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(70, 71, 174, 0.02), transparent 45%);
   }
 }
 
@@ -171,49 +169,46 @@
 
 @layer base {
   body {
-    background-color: #e8ecf5; /* Neomorphic Canvas Gray */
+    background-color: #f4f6f9; /* Clean Microsoft style background canvas */
     color: #1e293b;
     background-image: 
-      radial-gradient(at 0% 0%, rgba(70, 71, 174, 0.05) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(255, 255, 255, 0.4) 0px, transparent 50%),
-      radial-gradient(at 50% 100%, rgba(70, 71, 174, 0.02) 0px, transparent 50%);
+      radial-gradient(at 0% 0%, rgba(70, 71, 174, 0.07) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(99, 102, 241, 0.05) 0px, transparent 50%),
+      radial-gradient(at 50% 100%, rgba(70, 71, 174, 0.03) 0px, transparent 50%);
     background-attachment: fixed;
     overflow-x: hidden;
   }
   
-  /* Auto-style inputs to sunken neomorphic liquid-glass inputs */
+  /* Fluent inputs with clean glassmorphic styling */
   input, select, textarea {
-    box-shadow: inset 3px 3px 6px rgba(166, 171, 189, 0.35), inset -3px -3px 6px rgba(255, 255, 255, 0.95) !important;
-    background-color: rgba(255, 255, 255, 0.2) !important;
-    border: 1px solid rgba(255, 255, 255, 0.45) !important;
-    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02) !important;
+    background-color: rgba(255, 255, 255, 0.5) !important;
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
   }
   input:focus, select:focus, textarea:focus {
     box-shadow: 
-      inset 2px 2px 4px rgba(166, 171, 189, 0.2), 
-      inset -2px -2px 4px rgba(255, 255, 255, 0.8),
-      0 0 15px rgba(70, 71, 174, 0.08) !important;
-    border-color: rgba(70, 71, 174, 0.3) !important;
-    background-color: rgba(255, 255, 255, 0.45) !important;
+      0 4px 12px 0 rgba(70, 71, 174, 0.06),
+      0 0 0 1px rgba(70, 71, 174, 0.15) !important;
+    border-color: rgba(70, 71, 174, 0.45) !important;
+    background-color: rgba(255, 255, 255, 0.8) !important;
   }
 
-  /* Auto-style primary submit and CTA buttons to raised neomorphic elements */
+  /* Fluent button styling with clean shadows */
   button[type="submit"], .bg-gradient-to-r.from-amber-500 {
-    box-shadow: 
-      6px 6px 12px rgba(166, 171, 189, 0.35), 
-      -6px -6px 12px rgba(255, 255, 255, 0.95) !important;
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    background: linear-gradient(135deg, #4647ae 0%, #5c5ed8 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: 0 4px 12px 0 rgba(70, 71, 174, 0.15) !important;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
   }
   button[type="submit"]:hover, .bg-gradient-to-r.from-amber-500:hover {
-    box-shadow: 
-      8px 8px 16px rgba(166, 171, 189, 0.4), 
-      -8px -8px 16px rgba(255, 255, 255, 1) !important;
+    box-shadow: 0 6px 18px 0 rgba(70, 71, 174, 0.25) !important;
+    transform: translateY(-1.5px) !important;
   }
   button[type="submit"]:active, .bg-gradient-to-r.from-amber-500:active {
-    box-shadow: 
-      inset 3px 3px 6px rgba(166, 171, 189, 0.4), 
-      inset -3px -3px 6px rgba(255, 255, 255, 0.8) !important;
-    transform: translateY(1px) !important;
+    box-shadow: 0 2px 6px 0 rgba(70, 71, 174, 0.15) !important;
+    transform: translateY(0.5px) !important;
   }
 
   /* Customized scrollbar */
@@ -221,13 +216,13 @@
     width: 8px;
   }
   ::-webkit-scrollbar-track {
-    background: #e8ecf5;
+    background: #f4f6f9;
   }
   ::-webkit-scrollbar-thumb {
     background: rgba(70, 71, 174, 0.15);
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(70, 71, 174, 0.35);
+    background: rgba(70, 71, 174, 0.3);
   }
 }
