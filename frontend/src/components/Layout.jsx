@@ -3,7 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { 
   Menu, X, LogOut, LayoutDashboard, Search as SearchIcon, 
-  PlusCircle, ShieldAlert, Sparkles, User, MapPin
+  PlusCircle, ShieldAlert, Sparkles, User, Shield
 } from 'lucide-react';
 
 export const Layout = ({ children }) => {
@@ -14,7 +14,8 @@ export const Layout = ({ children }) => {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    // Redirect through the SSO transition portal with a custom sign-out message
+    navigate('/redirect?to=/&msg=Ending secure authentication session');
   };
 
   const isActive = (path) => location.pathname === path;
@@ -22,18 +23,25 @@ export const Layout = ({ children }) => {
   const getNavLinkClass = (path) => `
     flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 relative
     ${isActive(path) 
-      ? 'bg-gradient-to-r from-indigo-600/80 to-purple-600/80 text-white shadow-lg shadow-indigo-500/20 scale-[1.03] border border-indigo-400/20' 
-      : 'text-slate-300 hover:bg-slate-800/40 hover:text-white hover:scale-[1.01] border border-transparent'}
+      ? 'bg-gradient-to-r from-amber-500/20 to-amber-600/10 text-amber-400 shadow-md shadow-amber-500/5 scale-[1.02] border border-amber-500/30 font-bold' 
+      : 'text-slate-350 hover:bg-slate-900/60 hover:text-slate-100 border border-transparent'}
   `;
 
+  // Dynamic Navigation based on Auth State
   const navigation = [
-    { name: 'Dashboard', path: '/', icon: <LayoutDashboard className="w-4 h-4" /> },
-    { name: 'Search Catalog', path: '/search', icon: <SearchIcon className="w-4 h-4" /> },
-    { name: 'Report Lost Item', path: '/report-lost', icon: <PlusCircle className="w-4 h-4 text-rose-400" /> },
-    { name: 'Report Found Item', path: '/report-found', icon: <PlusCircle className="w-4 h-4 text-emerald-400" /> },
-    { name: 'Matches', path: '/matches', icon: <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" /> },
-    { name: 'My Profile', path: '/profile', icon: <User className="w-4 h-4" /> },
+    { name: 'Home', path: '/', icon: <Shield className="w-4 h-4" /> }
   ];
+
+  if (user) {
+    navigation.push(
+      { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+      { name: 'Search Catalog', path: '/search', icon: <SearchIcon className="w-4 h-4" /> },
+      { name: 'Report Lost', path: '/report-lost', icon: <PlusCircle className="w-4 h-4 text-rose-455" /> },
+      { name: 'Report Found', path: '/report-found', icon: <PlusCircle className="w-4 h-4 text-emerald-455" /> },
+      { name: 'Matches', path: '/matches', icon: <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" /> },
+      { name: 'My Profile', path: '/profile', icon: <User className="w-4 h-4" /> }
+    );
+  }
 
   if (isAdmin) {
     navigation.push({
@@ -55,25 +63,21 @@ export const Layout = ({ children }) => {
   return (
     <div className="min-h-screen text-slate-100 flex flex-col relative overflow-hidden interactive-glow-bg">
       {/* Animated Drifting Background Orbs */}
-      <div className="absolute top-[-20%] left-[-15%] w-[60vw] h-[60vw] rounded-full bg-indigo-500/5 blur-[150px] -z-20 animate-blob-1 pointer-events-none"></div>
-      <div className="absolute bottom-[-20%] right-[-15%] w-[60vw] h-[60vw] rounded-full bg-purple-500/5 blur-[150px] -z-20 animate-blob-2 pointer-events-none"></div>
+      <div className="absolute top-[-20%] left-[-15%] w-[60vw] h-[60vw] rounded-full bg-amber-500/3 blur-[150px] -z-20 animate-blob-1 pointer-events-none"></div>
+      <div className="absolute bottom-[-20%] right-[-15%] w-[60vw] h-[60vw] rounded-full bg-blue-900/5 blur-[150px] -z-20 animate-blob-2 pointer-events-none"></div>
 
       {/* Header / Navbar */}
-      <nav className="glass-card sticky top-0 z-40 border-b border-white/[0.04] backdrop-blur-md bg-opacity-70 shadow-lg">
+      <nav className="glass-card sticky top-0 z-40 border-b border-amber-500/10 backdrop-blur-md bg-opacity-70 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            {/* Logo */}
+            {/* Logo / Branding */}
             <div className="flex items-center">
-              <Link to="/" className="flex items-center gap-3 text-indigo-400 hover:text-indigo-300 transition-colors group">
-                <div className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 p-2.5 rounded-xl border border-indigo-500/20 shadow-inner group-hover:scale-105 transition-transform duration-300">
-                  <svg className="w-5 h-5 text-indigo-450 group-hover:rotate-12 transition-transform duration-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                    <circle cx="12" cy="11" r="3" />
-                    <path d="M12 8v6M9 11h6" />
-                  </svg>
+              <Link to="/" className="flex items-center gap-3 text-amber-400 hover:text-amber-300 transition-colors group">
+                <div className="bg-gradient-to-br from-amber-500/10 to-amber-600/10 p-2.5 rounded-xl border border-amber-500/20 shadow-inner group-hover:scale-105 transition-transform duration-300">
+                  <Shield className="w-5 h-5 text-amber-450 group-hover:rotate-12 transition-transform duration-500" />
                 </div>
                 <span className="font-extrabold text-lg tracking-widest text-slate-100 hidden sm:block">
-                  CAMPUS<span className="shimmer-text font-black">RETRIEVE</span>
+                  BEACON<span className="shimmer-text font-black">RECOVERY</span>
                 </span>
               </Link>
             </div>
@@ -88,26 +92,38 @@ export const Layout = ({ children }) => {
               ))}
             </div>
 
-            {/* User Profile and Logout */}
-            <div className="hidden lg:flex items-center gap-4">
-              <div className="flex items-center gap-2.5 text-xs text-slate-350 bg-white/[0.02] py-2 px-3.5 rounded-xl border border-white/[0.04] shadow-md">
-                <div className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-450 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            {/* User Profile and Logout / Sign-In Controls */}
+            {user ? (
+              <div className="hidden lg:flex items-center gap-4">
+                <div className="flex items-center gap-2.5 text-xs text-slate-350 bg-white/[0.02] py-2 px-3.5 rounded-xl border border-white/[0.04] shadow-md">
+                  <div className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-450 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </div>
+                  <span className="font-semibold text-slate-200">{user.name}</span>
+                  <span className="text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-lg bg-gradient-to-r from-amber-500/10 to-amber-600/10 text-amber-455 border border-amber-500/20">
+                    {user.role}
+                  </span>
                 </div>
-                <span className="font-semibold text-slate-200">{user?.name}</span>
-                <span className="text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-lg bg-gradient-to-r from-indigo-500/10 to-purple-500/10 text-indigo-450 border border-indigo-550/20">
-                  {user?.role}
-                </span>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center gap-2 text-slate-400 hover:text-rose-400 transition-all py-2 px-3.5 rounded-xl hover:bg-rose-500/10 text-xs font-semibold border border-transparent hover:border-rose-500/20 hover:scale-[1.02] cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Sign Out</span>
+                </button>
               </div>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-2 text-slate-450 hover:text-rose-450 transition-all py-2 px-3.5 rounded-xl hover:bg-rose-500/10 text-xs font-semibold border border-transparent hover:border-rose-500/20 hover:scale-[1.02] cursor-pointer"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Sign Out</span>
-              </button>
-            </div>
+            ) : (
+              <div className="hidden lg:flex items-center gap-4">
+                <Link
+                  to="/login"
+                  className="flex items-center gap-2 bg-gradient-to-r from-amber-500 via-amber-550 to-amber-600 hover:from-amber-450 hover:to-amber-550 text-slate-950 font-bold py-2.5 px-5 rounded-xl text-xs shadow-lg shadow-amber-500/5 transition-all duration-300 hover:scale-[1.02] border border-amber-400/20"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span>Portal Login</span>
+                </Link>
+              </div>
+            )}
 
             {/* Mobile Menu Toggle */}
             <div className="flex lg:hidden">
@@ -123,7 +139,7 @@ export const Layout = ({ children }) => {
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className="lg:hidden bg-slate-950/95 border-b border-slate-800/80 px-3 pt-2 pb-4 space-y-1.5 backdrop-blur-lg">
+          <div className="lg:hidden bg-slate-950/95 border-b border-slate-900 px-3 pt-2 pb-4 space-y-1.5 backdrop-blur-lg">
             {navigation.map((item) => (
               <Link
                 key={item.name}
@@ -131,8 +147,8 @@ export const Layout = ({ children }) => {
                 onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                   isActive(item.path)
-                    ? 'bg-gradient-to-r from-indigo-650 to-purple-650 text-white'
-                    : 'text-slate-300 hover:bg-slate-900/60'
+                    ? 'bg-gradient-to-r from-amber-500/20 to-amber-650/10 text-amber-400 border border-amber-500/20'
+                    : 'text-slate-350 hover:bg-slate-900/60'
                 }`}
               >
                 {item.icon}
@@ -140,25 +156,39 @@ export const Layout = ({ children }) => {
               </Link>
             ))}
             <hr className="border-slate-900 my-2" />
-            <div className="px-4 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-                <span className="text-sm font-semibold text-slate-300">{user?.name}</span>
-                <span className="text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-lg bg-indigo-500/10 text-indigo-400">
-                  {user?.role}
-                </span>
+            
+            {user ? (
+              <div className="px-4 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
+                  <span className="text-sm font-semibold text-slate-300">{user.name}</span>
+                  <span className="text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-lg bg-amber-550/10 text-amber-405">
+                    {user.role}
+                  </span>
+                </div>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="flex items-center gap-1.5 text-rose-400 font-bold text-xs hover:underline"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Sign Out</span>
+                </button>
               </div>
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  handleLogout();
-                }}
-                className="flex items-center gap-1.5 text-rose-450 font-bold text-xs hover:underline"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-                <span>Sign Out</span>
-              </button>
-            </div>
+            ) : (
+              <div className="px-4 py-2">
+                <Link
+                  to="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-bold py-3 rounded-xl text-xs"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span>Portal Login</span>
+                </Link>
+              </div>
+            )}
           </div>
         )}
       </nav>
@@ -171,17 +201,18 @@ export const Layout = ({ children }) => {
       </main>
 
       {/* Footer */}
-      <footer className="glass-card border-t border-slate-900/60 py-6 text-center text-xs text-slate-500 mt-auto">
+      <footer className="glass-card border-t border-slate-900 py-6 text-center text-xs text-slate-500 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© {new Date().getFullYear()} CampusRetrieve - College Lost & Found Portal. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Beacon State University. Campus Property Recovery Services. All rights reserved.</p>
           <div className="flex gap-4 font-semibold text-slate-400">
-            <span className="hover:text-indigo-400 transition-colors cursor-pointer">Terms</span>
-            <span className="hover:text-indigo-400 transition-colors cursor-pointer">Privacy</span>
-            <span className="hover:text-indigo-400 transition-colors cursor-pointer">Campus Map</span>
+            <span className="hover:text-amber-405 transition-colors cursor-pointer">Security Office</span>
+            <span className="hover:text-amber-405 transition-colors cursor-pointer">Campus Directory</span>
+            <span className="hover:text-amber-405 transition-colors cursor-pointer">Map & Directions</span>
           </div>
         </div>
       </footer>
     </div>
   );
 };
+
 export default Layout;

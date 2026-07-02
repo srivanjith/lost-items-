@@ -13,6 +13,8 @@ import ReportFound from './pages/ReportFound';
 import Matches from './pages/Matches';
 import Profile from './pages/Profile';
 import AdminPanel from './pages/AdminPanel';
+import LandingPage from './pages/LandingPage';
+import RedirectPortal from './pages/RedirectPortal';
 
 function App() {
   return (
@@ -23,10 +25,21 @@ function App() {
             {/* Public Auth Routes */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/redirect" element={<RedirectPortal />} />
+
+            {/* Public Landing Page */}
+            <Route
+              path="/"
+              element={
+                <Layout>
+                  <LandingPage />
+                </Layout>
+              }
+            />
 
             {/* Protected Application Routes */}
             <Route
-              path="/"
+              path="/dashboard"
               element={
                 <ProtectedRoute>
                   <Layout>
