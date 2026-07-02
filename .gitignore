@@ -1,0 +1,25 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment variables
+.env
+**/.env
+.env*.local
+
+# Logs
+*.log
+logs
+**/logs
+
+# Uploads and build outputs
+dist/
+dist-ssr/
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# IDEs and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
