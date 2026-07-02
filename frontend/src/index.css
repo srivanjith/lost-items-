@@ -1,5 +1,28 @@
 @import "tailwindcss";
 
+@theme {
+  --color-slate-950: #f8fafc; /* White/off-white background surface */
+  --color-slate-900: #ffffff; /* Clean white card backgrounds */
+  --color-slate-850: #f1f5f9; /* Soft light gray borders/inputs */
+  --color-slate-800: #e2e8f0; /* Clear slate borders */
+  --color-slate-700: #cbd5e1; /* Secondary border/icon gray */
+  --color-slate-600: #94a3b8; /* Mid gray text */
+  --color-slate-500: #64748b; /* Gray text */
+  --color-slate-450: #475569; /* Slate body text */
+  --color-slate-400: #334155; /* Slate secondary headers */
+  --color-slate-350: #1e293b; /* Slate main text */
+  --color-slate-300: #0f172a; /* Slate titles */
+  --color-slate-200: #020617; /* Slate dark accents */
+  --color-slate-100: #000000; /* Deep black headers */
+
+  --color-amber-500: #4647ae; /* Royal blue highlight */
+  --color-amber-400: #5c5ed8; /* Lighter royal blue */
+  --color-amber-600: #373895; /* Darker royal blue */
+  --color-amber-550: #4647ae;
+  --color-amber-405: #4647ae;
+  --color-amber-455: #4647ae;
+}
+
 @layer utilities {
   .animate-fade-in {
     animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
@@ -24,27 +47,28 @@
   }
   
   .glass-card {
-    background: rgba(11, 25, 44, 0.65);
+    background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(212, 175, 55, 0.08);
+    border: 1px solid rgba(70, 71, 174, 0.08);
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.04);
   }
   
   .glass-card-hover {
     transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
   }
   .glass-card-hover:hover {
-    background: rgba(15, 32, 57, 0.8);
-    border-color: rgba(212, 175, 55, 0.35);
+    background: rgba(255, 255, 255, 0.98);
+    border-color: rgba(70, 71, 174, 0.25);
     box-shadow: 
-      0 30px 60px -15px rgba(0, 0, 0, 0.7), 
-      0 0 50px -5px rgba(212, 175, 55, 0.08),
-      inset 0 1px 0px 0px rgba(255, 255, 255, 0.05);
+      0 30px 60px -15px rgba(70, 71, 174, 0.08), 
+      0 0 50px -5px rgba(70, 71, 174, 0.04),
+      inset 0 1px 0px 0px rgba(255, 255, 255, 0.8);
     transform: translateY(-6px) scale(1.01);
   }
   
   .shimmer-text {
-    background: linear-gradient(90deg, #d4af37 0%, #f1c40f 25%, #ffffff 50%, #f1c40f 75%, #d4af37 100%);
+    background: linear-gradient(90deg, #4647ae 0%, #6366f1 25%, #4647ae 50%, #6366f1 75%, #4647ae 100%);
     background-size: 200% auto;
     color: transparent;
     -webkit-background-clip: text;
@@ -53,11 +77,11 @@
   }
 
   .gold-glow {
-    box-shadow: 0 0 25px -5px rgba(212, 175, 55, 0.25);
+    box-shadow: 0 0 25px -5px rgba(70, 71, 174, 0.15);
   }
 
   .interactive-glow-bg {
-    background: radial-gradient(circle 800px at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(212, 175, 55, 0.03), transparent 40%);
+    background: radial-gradient(circle 800px at var(--mouse-x, 0px) var(--mouse-y, 0px), rgba(70, 71, 174, 0.02), transparent 40%);
   }
 }
 
@@ -142,12 +166,12 @@
 
 @layer base {
   body {
-    background-color: #030712; /* Deep scholastic slate/black */
-    color: #f3f4f6;
+    background-color: #f8fafc; /* Clean off-white background */
+    color: #0f172a;
     background-image: 
-      radial-gradient(at 0% 0%, rgba(11, 25, 44, 0.5) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(212, 175, 55, 0.03) 0px, transparent 40%),
-      radial-gradient(at 50% 100%, rgba(17, 43, 72, 0.4) 0px, transparent 50%);
+      radial-gradient(at 0% 0%, rgba(70, 71, 174, 0.04) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(70, 71, 174, 0.02) 0px, transparent 40%),
+      radial-gradient(at 50% 100%, rgba(70, 71, 174, 0.02) 0px, transparent 50%);
     background-attachment: fixed;
     overflow-x: hidden;
   }
@@ -157,13 +181,13 @@
     width: 8px;
   }
   ::-webkit-scrollbar-track {
-    background: #030712;
+    background: #f8fafc;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(212, 175, 55, 0.15);
+    background: rgba(70, 71, 174, 0.15);
     border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(212, 175, 55, 0.35);
+    background: rgba(70, 71, 174, 0.3);
   }
 }
