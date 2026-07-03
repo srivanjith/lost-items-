@@ -20,6 +20,35 @@ function getTokens(str) {
 
 // Score calculator from 0 to 100
 function calculateScore(lostItem, foundItem) {
+  const name1 = lostItem.item_name || '';
+  const name2 = foundItem.item_name || '';
+  const desc1 = lostItem.description || '';
+  const desc2 = foundItem.description || '';
+  let nameScore = 0;
+
+  // Brand mismatch check for electronic devices and gadgets
+  const getNormalizedBrand = (text) => {
+    const t = text.toLowerCase();
+    if (t.includes('apple') || t.includes('iphone') || t.includes('macbook') || t.includes('ipad') || t.includes('airpods')) return 'apple';
+    if (t.includes('samsung') || t.includes('galaxy')) return 'samsung';
+    if (t.includes('oneplus')) return 'oneplus';
+    if (t.includes('pixel') || t.includes('google pixel')) return 'google';
+    if (t.includes('asus') || t.includes('tuf') || t.includes('rog')) return 'asus';
+    if (t.includes('dell') || t.includes('inspiron') || t.includes('latitude')) return 'dell';
+    if (t.includes('hp') || t.includes('pavilion')) return 'hp';
+    if (t.includes('lenovo') || t.includes('thinkpad')) return 'lenovo';
+    if (t.includes('acer') || t.includes('aspire')) return 'acer';
+    return null;
+  };
+
+  const b1 = getNormalizedBrand(name1 + ' ' + desc1);
+  const b2 = getNormalizedBrand(name2 + ' ' + desc2);
+
+  if (b1 && b2 && b1 !== b2) {
+    // If brand mismatch is detected, reject the match (score 0)
+    return 0;
+  }
+
   // 1. Category match (30%)
   let categoryScore = 0;
   if (
@@ -31,9 +60,6 @@ function calculateScore(lostItem, foundItem) {
   }
 
   // 2. Item Name match (25%)
-  let nameScore = 0;
-  const name1 = lostItem.item_name || '';
-  const name2 = foundItem.item_name || '';
   if (name1.trim().toLowerCase() === name2.trim().toLowerCase()) {
     nameScore = 25;
   } else {
@@ -52,10 +78,7 @@ function calculateScore(lostItem, foundItem) {
     }
   }
 
-  // 3. Description match (25%)
   let descScore = 0;
-  const desc1 = lostItem.description || '';
-  const desc2 = foundItem.description || '';
   const descTokens1 = getTokens(desc1);
   const descTokens2 = getTokens(desc2);
   if (descTokens1.length > 0 && descTokens2.length > 0) {
