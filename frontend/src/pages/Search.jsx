@@ -306,8 +306,8 @@ export const Search = () => {
 
       {/* Item Inspection Modal Overlay */}
       {selectedItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
-          <div className="bg-slate-900 border border-slate-800 max-w-2xl w-full rounded-3xl overflow-hidden shadow-2xl relative animate-scale-up">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-400/30 backdrop-blur-sm">
+          <div className="bg-white border border-slate-700/60 max-w-2xl w-full rounded-3xl overflow-y-auto max-h-[90vh] shadow-2xl relative animate-scale-up">
             
             {/* Close Modal Button */}
             <button
