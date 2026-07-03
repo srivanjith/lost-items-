@@ -11,10 +11,11 @@ export const Layout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [reportDropdownOpen, setReportDropdownOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
-    // Redirect through the SSO transition portal with a custom sign-out message
     navigate('/redirect?to=/&msg=Ending secure authentication session');
   };
 
@@ -27,7 +28,7 @@ export const Layout = ({ children }) => {
       : 'text-slate-350 hover:bg-slate-900/60 hover:text-slate-100 border border-transparent'}
   `;
 
-  // Dynamic Navigation based on Auth State
+  // Desktop core navigation links (excl. dropdowns to prevent clutter)
   const navigation = [
     { name: 'Home', path: '/', icon: <Shield className="w-4 h-4" /> }
   ];
@@ -36,15 +37,28 @@ export const Layout = ({ children }) => {
     navigation.push(
       { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
       { name: 'Search Catalog', path: '/search', icon: <SearchIcon className="w-4 h-4" /> },
-      { name: 'Report Lost', path: '/report-lost', icon: <PlusCircle className="w-4 h-4 text-rose-455" /> },
-      { name: 'Report Found', path: '/report-found', icon: <PlusCircle className="w-4 h-4 text-emerald-455" /> },
+      { name: 'Matches', path: '/matches', icon: <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" /> }
+    );
+  }
+
+  // Mobile flat navigation links
+  const mobileNavigation = [
+    { name: 'Home', path: '/', icon: <Shield className="w-4 h-4" /> }
+  ];
+
+  if (user) {
+    mobileNavigation.push(
+      { name: 'Dashboard', path: '/dashboard', icon: <LayoutDashboard className="w-4 h-4" /> },
+      { name: 'Search Catalog', path: '/search', icon: <SearchIcon className="w-4 h-4" /> },
+      { name: 'Report Lost Item', path: '/report-lost', icon: <PlusCircle className="w-4 h-4 text-rose-500" /> },
+      { name: 'Report Found Item', path: '/report-found', icon: <PlusCircle className="w-4 h-4 text-emerald-500" /> },
       { name: 'Matches', path: '/matches', icon: <Sparkles className="w-4 h-4 text-amber-400 animate-pulse" /> },
       { name: 'My Profile', path: '/profile', icon: <User className="w-4 h-4" /> }
     );
   }
 
   if (isAdmin) {
-    navigation.push({
+    mobileNavigation.push({
       name: 'Admin Panel',
       path: '/admin',
       icon: <ShieldAlert className="w-4 h-4 text-rose-500" />
@@ -83,35 +97,105 @@ export const Layout = ({ children }) => {
             </div>
 
             {/* Desktop Navigation Links */}
-            <div className="hidden lg:flex items-center gap-1.5">
+            <div className="hidden lg:flex items-center gap-2">
               {navigation.map((item) => (
                 <Link key={item.name} to={item.path} className={getNavLinkClass(item.path)}>
                   {item.icon}
                   <span>{item.name}</span>
                 </Link>
               ))}
+
+              {/* Desktop Report Item Dropdown */}
+              {user && (
+                <div 
+                  className="relative z-50"
+                  onMouseEnter={() => setReportDropdownOpen(true)}
+                  onMouseLeave={() => setReportDropdownOpen(false)}
+                >
+                  <button 
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 border border-transparent cursor-pointer hover:bg-slate-900/60 hover:text-slate-100 ${
+                      isActive('/report-lost') || isActive('/report-found') 
+                        ? 'bg-gradient-to-r from-amber-500/20 to-amber-600/10 text-amber-405 border-amber-500/30 font-bold' 
+                        : 'text-slate-350'
+                    }`}
+                  >
+                    <PlusCircle className="w-4 h-4 text-amber-400" />
+                    <span>Report Property</span>
+                  </button>
+                  
+                  {reportDropdownOpen && (
+                    <div className="absolute left-0 mt-0 w-48 rounded-2xl glass-card border border-white/[0.08] shadow-xl overflow-hidden py-1.5 z-55 animate-fade-in">
+                      <Link 
+                        to="/report-lost" 
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-350 hover:bg-slate-900/40 hover:text-rose-500 transition-colors"
+                      >
+                        <PlusCircle className="w-3.5 h-3.5 text-rose-500" />
+                        <span>Report Lost Item</span>
+                      </Link>
+                      <Link 
+                        to="/report-found" 
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-350 hover:bg-slate-900/40 hover:text-emerald-500 transition-colors"
+                      >
+                        <PlusCircle className="w-3.5 h-3.5 text-emerald-500" />
+                        <span>Report Found Item</span>
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
-            {/* User Profile and Logout / Sign-In Controls */}
+            {/* Desktop User Dropdown Control */}
             {user ? (
-              <div className="hidden lg:flex items-center gap-4">
-                <div className="flex items-center gap-2.5 text-xs text-slate-350 bg-white/[0.02] py-2 px-3.5 rounded-xl border border-white/[0.04] shadow-md">
+              <div 
+                className="hidden lg:block relative z-50"
+                onMouseEnter={() => setProfileDropdownOpen(true)}
+                onMouseLeave={() => setProfileDropdownOpen(false)}
+              >
+                <button
+                  className="flex items-center gap-2.5 text-xs text-slate-350 hover:text-slate-200 bg-white/[0.02] hover:bg-white/[0.06] py-2 px-3.5 rounded-xl border border-white/[0.04] shadow-md transition-all cursor-pointer"
+                >
                   <div className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-450 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                   </div>
-                  <span className="font-semibold text-slate-200">{user.name}</span>
+                  <span className="font-semibold">{user.name}</span>
                   <span className="text-[9px] uppercase font-extrabold tracking-wider px-2 py-0.5 rounded-lg bg-gradient-to-r from-amber-500/10 to-amber-600/10 text-amber-455 border border-amber-500/20">
                     {user.role}
                   </span>
-                </div>
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center gap-2 text-slate-400 hover:text-rose-400 transition-all py-2 px-3.5 rounded-xl hover:bg-rose-500/10 text-xs font-semibold border border-transparent hover:border-rose-500/20 hover:scale-[1.02] cursor-pointer"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span>Sign Out</span>
                 </button>
+
+                {profileDropdownOpen && (
+                  <div className="absolute right-0 mt-0 w-48 rounded-2xl glass-card border border-white/[0.08] shadow-xl overflow-hidden py-1.5 z-55 animate-fade-in">
+                    <Link 
+                      to="/profile" 
+                      className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-350 hover:bg-slate-900/40 hover:text-amber-400 transition-colors"
+                    >
+                      <User className="w-3.5 h-3.5" />
+                      <span>My Profile</span>
+                    </Link>
+                    
+                    {isAdmin && (
+                      <Link 
+                        to="/admin" 
+                        className="flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-slate-350 hover:bg-slate-900/40 hover:text-rose-500 transition-colors"
+                      >
+                        <ShieldAlert className="w-3.5 h-3.5 text-rose-500" />
+                        <span>Admin Panel</span>
+                      </Link>
+                    )}
+                    
+                    <hr className="border-slate-700/40 my-1" />
+                    
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs font-semibold text-rose-500 hover:bg-rose-500/10 transition-colors text-left cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="hidden lg:flex items-center gap-4">
@@ -140,7 +224,7 @@ export const Layout = ({ children }) => {
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
           <div className="lg:hidden bg-slate-950/95 border-b border-slate-900 px-3 pt-2 pb-4 space-y-1.5 backdrop-blur-lg">
-            {navigation.map((item) => (
+            {mobileNavigation.map((item) => (
               <Link
                 key={item.name}
                 to={item.path}
