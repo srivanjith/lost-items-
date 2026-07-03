@@ -116,6 +116,14 @@ export const matchService = {
     const response = await api.get('/matches');
     return response.data;
   },
+  getAIComparedMatches: async (lostItemId) => {
+    const response = await api.get(`/matches/ai-compare/${lostItemId}`);
+    return response.data;
+  },
+  verifyMatchWithAI: async (lostItemId, foundItemId) => {
+    const response = await api.post('/matches/ai-verify', { lostItemId, foundItemId });
+    return response.data;
+  },
 };
 
 export const dashboardService = {

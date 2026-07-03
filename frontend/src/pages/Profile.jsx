@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { userService, lostService, foundService, UPLOAD_URL } from '../services/api';
+import { userService, lostService, foundService, matchService, UPLOAD_URL } from '../services/api';
 import { auth } from '../config/firebase';
 import { EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
 import { 
   User, Mail, Phone, Lock, Save, Trash2, CheckCircle2, 
-  HelpCircle, Calendar, MapPin, Sparkles, Shield, EyeOff
+  HelpCircle, Calendar, MapPin, Sparkles, Shield, EyeOff, X, AlertCircle
 } from 'lucide-react';
 
 export const Profile = () => {
@@ -30,6 +30,12 @@ export const Profile = () => {
   const [foundReports, setFoundReports] = useState([]);
   const [loadingItems, setLoadingItems] = useState(true);
   const [activeTab, setActiveTab] = useState('lost'); // 'lost' or 'found'
+
+  // AI Scan modal states
+  const [aiScanLostItem, setAiScanLostItem] = useState(null);
+  const [aiMatches, setAiMatches] = useState([]);
+  const [loadingAIMatches, setLoadingAIMatches] = useState(false);
+  const [activeAIContactId, setActiveAIContactId] = useState(null);
 
   const fetchUserReports = async () => {
     setLoadingItems(true);
@@ -189,6 +195,26 @@ export const Profile = () => {
     } catch (error) {
       console.error('Error deleting item:', error);
       showToast('Error deleting item report.', 'error');
+    }
+  };
+
+  const handleAISimilarScan = async (lostItem) => {
+    setAiScanLostItem(lostItem);
+    setAiMatches([]);
+    setLoadingAIMatches(true);
+    setActiveAIContactId(null);
+    try {
+      const response = await matchService.getAIComparedMatches(lostItem.id);
+      if (response.success) {
+        setAiMatches(response.matches);
+      } else {
+        showToast('AI Similarity scanning failed.', 'error');
+      }
+    } catch (error) {
+      console.error('AI comparison error:', error);
+      showToast('Error during AI comparison.', 'error');
+    } finally {
+      setLoadingAIMatches(false);
     }
   };
 
@@ -458,6 +484,16 @@ export const Profile = () => {
 
                     {/* Actions Panel */}
                     <div className="flex items-center gap-2 w-full sm:w-auto justify-end border-t sm:border-t-0 border-slate-850 pt-3 sm:pt-0">
+                      {activeTab === 'lost' && item.status !== 'resolved' && (
+                        <button
+                          onClick={() => handleAISimilarScan(item)}
+                          className="bg-indigo-650 hover:bg-indigo-600 text-white font-bold text-[10px] uppercase tracking-wider py-2 px-3 rounded-lg flex items-center gap-1 transition-colors cursor-pointer"
+                          title="Compare with AI"
+                        >
+                          <Sparkles className="w-3.5 h-3.5 text-amber-350" />
+                          <span>AI Scan</span>
+                        </button>
+                      )}
                       {item.status !== 'resolved' && (
                         <button
                           onClick={() => handleResolveItem(item.id, activeTab)}
@@ -484,6 +520,176 @@ export const Profile = () => {
           })()
         )}
       </div>
+
+      {/* AI Similarity Scan Modal */}
+      {aiScanLostItem && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-400/30 backdrop-blur-md">
+          <div className="bg-white border border-slate-700/60 max-w-2xl w-full rounded-3xl overflow-hidden shadow-2xl relative animate-scale-up flex flex-col max-h-[85vh]">
+            
+            {/* Close Button */}
+            <button
+              onClick={() => setAiScanLostItem(null)}
+              className="absolute top-4 right-4 z-10 bg-slate-950 border border-slate-700 p-2 rounded-xl text-slate-500 hover:text-slate-355 transition-colors cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+
+            {/* Modal Header */}
+            <div className="p-6 border-b border-slate-700/40 bg-slate-950/50">
+              <span className="text-[10px] font-black uppercase tracking-widest text-amber-500 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20 flex items-center gap-1.5 w-fit">
+                <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+                <span>AI Similarity Scanner</span>
+              </span>
+              <h3 className="text-lg font-extrabold text-slate-350 mt-3">
+                Scanning Matches for: <span className="text-amber-500">"{aiScanLostItem.item_name}"</span>
+              </h3>
+              <p className="text-xs text-slate-600 mt-1">
+                Analyzing lost details against database of reported found items.
+              </p>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="p-6 overflow-y-auto space-y-6 flex-grow">
+              {loadingAIMatches ? (
+                <div className="py-12 flex flex-col items-center justify-center space-y-4">
+                  {/* Radar Scanner Animation */}
+                  <div className="relative w-20 h-20 animate-pulse">
+                    <div className="absolute inset-0 rounded-full border-4 border-indigo-500/30"></div>
+                    <div className="absolute inset-2 rounded-full border-4 border-indigo-500/60 animate-ping"></div>
+                    <div className="absolute inset-4 rounded-full bg-indigo-650 flex items-center justify-center shadow-lg shadow-indigo-600/30">
+                      <Sparkles className="w-6 h-6 text-white animate-spin" />
+                    </div>
+                  </div>
+                  <div className="text-center space-y-1">
+                    <p className="text-xs font-bold text-slate-350 animate-pulse">AI Engine Analysing Listings...</p>
+                    <p className="text-[10px] text-slate-500">Cross-referencing synonyms, categories, locations, and dates</p>
+                  </div>
+                </div>
+              ) : aiMatches.length === 0 ? (
+                <div className="text-center py-12 bg-slate-950/20 rounded-2xl border border-slate-700 border-dashed">
+                  <AlertCircle className="w-10 h-10 text-slate-400 mx-auto mb-3" />
+                  <p className="text-slate-350 text-sm font-semibold">No AI Matches Identified</p>
+                  <p className="text-slate-600 text-xs mt-1">
+                    Gemini was unable to verify any found listings that resemble this lost item.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-xs font-semibold text-indigo-650">
+                    Ranked AI Similarity Results ({aiMatches.length})
+                  </p>
+                  <div className="space-y-4">
+                    {aiMatches.map((match) => {
+                      const score = match.match_score;
+                      const isContactActive = activeAIContactId === match.found_item.id;
+                      
+                      let scoreBadgeClass = "text-indigo-650 bg-indigo-500/10 border-indigo-500/20";
+                      if (score >= 80) scoreBadgeClass = "text-emerald-650 bg-emerald-500/10 border-emerald-500/20";
+                      else if (score >= 50) scoreBadgeClass = "text-amber-650 bg-amber-500/10 border-amber-500/20";
+
+                      return (
+                        <div 
+                          key={match.found_item.id} 
+                          className="bg-white border border-slate-700/60 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all flex flex-col gap-4"
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-900/10 pb-3">
+                            <div className="flex items-center gap-2">
+                              <span className={`text-[10px] font-black px-2.5 py-1 rounded-full border ${scoreBadgeClass}`}>
+                                {score}% AI MATCH
+                              </span>
+                              <span className="text-[10px] uppercase font-bold text-slate-500 bg-slate-950 px-2.5 py-0.5 rounded">
+                                {match.confidence} confidence
+                              </span>
+                            </div>
+                            <button
+                              onClick={() => setActiveAIContactId(isContactActive ? null : match.found_item.id)}
+                              className="bg-indigo-650 hover:bg-indigo-600 text-white text-[10px] uppercase tracking-wider font-bold py-1.5 px-3 rounded-lg shadow transition-colors cursor-pointer self-end sm:self-auto"
+                            >
+                              {isContactActive ? 'Hide Finder' : 'Contact Finder'}
+                            </button>
+                          </div>
+
+                          <div className="flex gap-4">
+                            {/* Thumbnail */}
+                            <div className="w-16 h-16 bg-slate-950 border border-slate-700 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center">
+                              {match.found_item.image ? (
+                                <img 
+                                  src={`${UPLOAD_URL}/${match.found_item.image}`} 
+                                  alt={match.found_item.item_name} 
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <HelpCircle className="w-6 h-6 text-slate-650" />
+                              )}
+                            </div>
+
+                            {/* Found item details */}
+                            <div className="space-y-1">
+                              <h4 className="font-bold text-slate-350 text-sm">{match.found_item.item_name}</h4>
+                              <div className="flex flex-wrap gap-x-3 text-[10px] text-slate-550">
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="w-3 h-3 text-indigo-500" />
+                                  <span>{match.found_item.location}</span>
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Calendar className="w-3 h-3 text-indigo-500" />
+                                  <span>{formatDate(match.found_item.date_found)}</span>
+                                </span>
+                              </div>
+                              <p className="text-xs text-slate-600 line-clamp-1 mt-1 leading-relaxed">
+                                {match.found_item.description}
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* AI Analysis Paragraph */}
+                          <div className="bg-indigo-500/5 border border-indigo-500/10 p-3 rounded-xl">
+                            <p className="text-xs text-slate-455 italic leading-relaxed">
+                              <strong>AI Assessment:</strong> {match.match_analysis}
+                            </p>
+                          </div>
+
+                          {/* Sliding Contact info */}
+                          {isContactActive && (
+                            <div className="bg-slate-950 border border-slate-700 p-3 rounded-xl text-xs space-y-1.5 animate-slide-down">
+                              <p className="font-bold text-slate-350">Claim from Finder:</p>
+                              <div className="text-slate-555 space-y-1 pt-0.5">
+                                <p><strong>Name:</strong> {match.found_item.finder.name}</p>
+                                <p>
+                                  <strong>Email:</strong>{" "}
+                                  <a href={`mailto:${match.found_item.finder.email}`} className="text-indigo-650 hover:underline">
+                                    {match.found_item.finder.email}
+                                  </a>
+                                </p>
+                                <p>
+                                  <strong>Phone:</strong>{" "}
+                                  <a href={`tel:${match.found_item.finder.phone}`} className="text-indigo-650 hover:underline">
+                                    {match.found_item.finder.phone}
+                                  </a>
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-700/40 bg-slate-950/30 flex justify-end">
+              <button
+                onClick={() => setAiScanLostItem(null)}
+                className="bg-slate-900 border border-slate-750 text-slate-350 hover:bg-slate-850 font-bold text-xs py-2 px-5 rounded-xl cursor-pointer"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

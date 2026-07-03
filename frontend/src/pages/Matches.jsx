@@ -3,7 +3,7 @@ import { matchService, UPLOAD_URL } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { 
   Sparkles, AlertCircle, HelpCircle, MapPin, 
-  Calendar, Phone, Mail, User, ShieldCheck, ChevronRight
+  Calendar, Phone, Mail, User, ShieldCheck, ChevronRight, Check, AlertTriangle, Activity
 } from 'lucide-react';
 
 export const Matches = () => {
@@ -11,6 +11,8 @@ export const Matches = () => {
   const [matches, setMatches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeContactId, setActiveContactId] = useState(null); // ID of match showing contact info
+  const [aiAnalysis, setAiAnalysis] = useState({}); // Stores AI verify analysis by match_id
+  const [activeAIVerifyId, setActiveAIVerifyId] = useState(null); // ID of match showing AI diagnostics
 
   useEffect(() => {
     const fetchMatches = async () => {
@@ -31,6 +33,45 @@ export const Matches = () => {
 
     fetchMatches();
   }, [showToast]);
+
+  const handleRunAIVerify = async (matchId, lostItemId, foundItemId) => {
+    if (activeAIVerifyId === matchId) {
+      setActiveAIVerifyId(null);
+      return;
+    }
+
+    setActiveAIVerifyId(matchId);
+
+    if (aiAnalysis[matchId]?.data) return;
+
+    setAiAnalysis(prev => ({
+      ...prev,
+      [matchId]: { loading: true, data: null, error: null }
+    }));
+
+    try {
+      const response = await matchService.verifyMatchWithAI(lostItemId, foundItemId);
+      if (response.success) {
+        setAiAnalysis(prev => ({
+          ...prev,
+          [matchId]: { loading: false, data: response.analysis, error: null }
+        }));
+      } else {
+        setAiAnalysis(prev => ({
+          ...prev,
+          [matchId]: { loading: false, data: null, error: 'AI Verification failed.' }
+        }));
+        showToast('AI Verification failed.', 'error');
+      }
+    } catch (error) {
+      console.error('AI verification error:', error);
+      setAiAnalysis(prev => ({
+        ...prev,
+        [matchId]: { loading: false, data: null, error: 'Error calling AI comparison service.' }
+      }));
+      showToast('Error running AI verification.', 'error');
+    }
+  };
 
   const getScoreColor = (score) => {
     if (score >= 80) return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20';
@@ -98,12 +139,22 @@ export const Matches = () => {
                     </span>
                   </div>
                   
-                  <button
-                    onClick={() => setActiveContactId(isContactActive ? null : match.match_id)}
-                    className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold py-2 px-4 rounded-xl shadow transition-colors cursor-pointer"
-                  >
-                    {isContactActive ? 'Hide Contact Info' : 'Contact Party'}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleRunAIVerify(match.match_id, match.lost_item.id, match.found_item.id)}
+                      className="bg-purple-650 hover:bg-purple-600 text-white text-xs font-bold py-2 px-4 rounded-xl shadow transition-colors cursor-pointer flex items-center gap-1.5"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-350 animate-pulse" />
+                      <span>{activeAIVerifyId === match.match_id ? 'Hide AI Verdict' : 'Verify with AI'}</span>
+                    </button>
+
+                    <button
+                      onClick={() => setActiveContactId(isContactActive ? null : match.match_id)}
+                      className="bg-indigo-650 hover:bg-indigo-600 text-white text-xs font-bold py-2 px-4 rounded-xl shadow transition-colors cursor-pointer"
+                    >
+                      {isContactActive ? 'Hide Contact Info' : 'Contact Party'}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Split comparison panels */}
@@ -198,6 +249,108 @@ export const Matches = () => {
                   </div>
 
                 </div>
+
+                {/* AI Diagnostics Drawer Panel */}
+                {activeAIVerifyId === match.match_id && (() => {
+                  const state = aiAnalysis[match.match_id];
+                  if (!state) return null;
+
+                  if (state.loading) {
+                    return (
+                      <div className="bg-indigo-500/5 border-t border-b border-slate-850 px-6 py-8 flex flex-col items-center justify-center space-y-3">
+                        <Activity className="w-6 h-6 text-purple-500 animate-spin" />
+                        <span className="text-xs font-bold text-slate-350 animate-pulse">Running AI Semantic Cross-Examination...</span>
+                        <span className="text-[10px] text-slate-500">Retrieving item data and compiling similarity analysis</span>
+                      </div>
+                    );
+                  }
+
+                  if (state.error) {
+                    return (
+                      <div className="bg-rose-500/5 border-t border-b border-slate-850 px-6 py-6 flex items-center gap-3">
+                        <AlertTriangle className="w-5 h-5 text-rose-500 flex-shrink-0" />
+                        <span className="text-xs text-rose-600 font-semibold">{state.error}</span>
+                      </div>
+                    );
+                  }
+
+                  const analysis = state.data;
+                  if (!analysis) return null;
+
+                  let verdictClass = "text-indigo-650 bg-indigo-500/10 border-indigo-500/20";
+                  let verdictLabel = "Unlikely Match";
+                  if (analysis.match_verdict === "highly_likely") {
+                    verdictClass = "text-emerald-655 bg-emerald-500/10 border-emerald-500/20";
+                    verdictLabel = "Highly Likely Match";
+                  } else if (analysis.match_verdict === "possible") {
+                    verdictClass = "text-amber-655 bg-amber-500/10 border-amber-500/20";
+                    verdictLabel = "Possible Match";
+                  }
+
+                  return (
+                    <div className="bg-gradient-to-br from-indigo-500/5 to-purple-500/5 border-t border-b border-slate-850 px-6 py-5 space-y-4 animate-slide-down">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="w-4 h-4 text-amber-500" />
+                          <span className="text-xs font-black text-slate-350 tracking-wide uppercase">AI Deep Diagnosis Report</span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-black px-2.5 py-0.5 rounded-full border ${verdictClass}`}>
+                            {verdictLabel}
+                          </span>
+                          <span className="text-[10px] font-bold text-slate-500 bg-slate-950 px-2.5 py-0.5 rounded">
+                            {analysis.similarity_score}% SIMILARITY
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="text-xs text-slate-600 leading-relaxed bg-white border border-slate-700/30 p-4 rounded-2xl shadow-sm">
+                        {analysis.analysis_details}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="bg-emerald-500/5 border border-emerald-500/10 p-3.5 rounded-2xl space-y-2">
+                          <span className="text-[10px] font-extrabold text-emerald-600 uppercase tracking-wider flex items-center gap-1">
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Matching Features</span>
+                          </span>
+                          {analysis.matching_points?.length > 0 ? (
+                            <ul className="text-xs text-slate-600 space-y-1.5 pl-1">
+                              {analysis.matching_points.map((pt, i) => (
+                                <li key={i} className="flex items-start gap-1.5">
+                                  <span className="text-emerald-500 font-bold mt-0.5">•</span>
+                                  <span>{pt}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="text-[11px] text-slate-500 italic">No specific matching features noted.</p>
+                          )}
+                        </div>
+
+                        <div className="bg-amber-500/5 border border-amber-500/10 p-3.5 rounded-2xl space-y-2">
+                          <span className="text-[10px] font-extrabold text-amber-600 uppercase tracking-wider flex items-center gap-1">
+                            <AlertTriangle className="w-3.5 h-3.5" />
+                            <span>Potential Discrepancies</span>
+                          </span>
+                          {analysis.discrepancies?.length > 0 ? (
+                            <ul className="text-xs text-slate-600 space-y-1.5 pl-1">
+                              {analysis.discrepancies.map((pt, i) => (
+                                <li key={i} className="flex items-start gap-1.5">
+                                  <span className="text-amber-500 font-bold mt-0.5">•</span>
+                                  <span>{pt}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="text-[11px] text-slate-500 italic">No obvious discrepancies found.</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Contact Drawer Panel (Renders slide down when contact active) */}
                 {isContactActive && (

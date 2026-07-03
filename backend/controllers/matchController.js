@@ -1,4 +1,5 @@
 const db = require('../config/db');
+const { compareItemsWithAI, verifySingleMatchWithAI } = require('../utils/gemini');
 
 // Get all matches for the logged-in user or all matches if admin
 exports.getMatches = async (req, res, next) => {
@@ -107,3 +108,139 @@ exports.getMatches = async (req, res, next) => {
     next(error);
   }
 };
+
+// Perform semantic AI matching comparison for a lost item against candidate found items
+exports.getAIComparedMatches = async (req, res, next) => {
+  try {
+    const { lostItemId } = req.params;
+
+    // Fetch lost item
+    const [lostRows] = await db.query(
+      `SELECT li.*, u.name as owner_name, u.email as owner_email, u.phone as owner_phone
+       FROM lost_items li
+       JOIN users u ON li.user_id = u.id
+       WHERE li.id = ?`,
+      [lostItemId]
+    );
+
+    if (lostRows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Lost item not found.' });
+    }
+    const lostItem = lostRows[0];
+
+    // Fetch candidate found items
+    // We select active found items in the same category OR those that have a heuristic match already
+    const [candidateFoundItems] = await db.query(
+      `SELECT fi.*, u.name as finder_name, u.email as finder_email, u.phone as finder_phone
+       FROM found_items fi
+       JOIN users u ON fi.user_id = u.id
+       WHERE fi.status = 'found' 
+         AND (fi.category = ? OR fi.id IN (
+           SELECT found_item_id FROM matches WHERE lost_item_id = ?
+         ))
+       LIMIT 30`,
+      [lostItem.category, lostItemId]
+    );
+
+    if (candidateFoundItems.length === 0) {
+      return res.json({
+        success: true,
+        count: 0,
+        matches: []
+      });
+    }
+
+    // Call Gemini utility
+    const comparisons = await compareItemsWithAI(lostItem, candidateFoundItems);
+
+    // Merge comparisons with actual found items details
+    const comparedMatches = comparisons
+      .map(comp => {
+        const foundItem = candidateFoundItems.find(fi => fi.id === comp.found_item_id);
+        if (!foundItem) return null;
+
+        return {
+          match_score: comp.similarity_score,
+          match_analysis: comp.match_analysis,
+          confidence: comp.confidence,
+          lost_item: {
+            id: lostItem.id,
+            item_name: lostItem.item_name,
+            category: lostItem.category,
+            description: lostItem.description,
+            image: lostItem.image,
+            location: lostItem.location,
+            date_lost: lostItem.date_lost,
+            owner: {
+              id: lostItem.user_id,
+              name: lostItem.owner_name,
+              email: lostItem.owner_email,
+              phone: lostItem.owner_phone
+            }
+          },
+          found_item: {
+            id: foundItem.id,
+            item_name: foundItem.item_name,
+            category: foundItem.category,
+            description: foundItem.description,
+            image: foundItem.image,
+            location: foundItem.location,
+            date_found: foundItem.date_found,
+            finder: {
+              id: foundItem.user_id,
+              name: foundItem.finder_name,
+              email: foundItem.finder_email,
+              phone: foundItem.finder_phone
+            }
+          }
+        };
+      })
+      .filter(Boolean)
+      // Sort by similarity score descending
+      .sort((a, b) => b.match_score - a.match_score);
+
+    res.json({
+      success: true,
+      count: comparedMatches.length,
+      matches: comparedMatches
+    });
+
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Deep 1-to-1 AI verification
+exports.verifyMatchWithAI = async (req, res, next) => {
+  try {
+    const { lostItemId, foundItemId } = req.body;
+    if (!lostItemId || !foundItemId) {
+      return res.status(400).json({ success: false, message: 'Both lostItemId and foundItemId are required.' });
+    }
+
+    // Fetch lost item
+    const [lostRows] = await db.query('SELECT * FROM lost_items WHERE id = ?', [lostItemId]);
+    if (lostRows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Lost item not found.' });
+    }
+    const lostItem = lostRows[0];
+
+    // Fetch found item
+    const [foundRows] = await db.query('SELECT * FROM found_items WHERE id = ?', [foundItemId]);
+    if (foundRows.length === 0) {
+      return res.status(404).json({ success: false, message: 'Found item not found.' });
+    }
+    const foundItem = foundRows[0];
+
+    // Call Gemini utility for deep 1-to-1 verify
+    const analysis = await verifySingleMatchWithAI(lostItem, foundItem);
+
+    res.json({
+      success: true,
+      analysis
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
